@@ -18,7 +18,9 @@ func MysqlDatabaseConnection(config *config.AppConfig) *gorm.DB {
 		config.Database.Address, config.Database.Port,
 		config.Database.Name)
 
-	db, err := gorm.Open(mysql.Open(uri), &gorm.Config{})
+	db, err := gorm.Open(mysql.Open(uri), &gorm.Config{
+		SkipDefaultTransaction: true,
+	})
 
 	if err != nil {
 		log.Info("failed connecting to the database: ", err)

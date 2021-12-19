@@ -18,6 +18,7 @@ func main() {
 	db := util.MysqlDatabaseConnection(config)
 
 	router.RegisterBrandPath(r, db)
+	router.RegisterOutletPath(r, db)
 
 	server := &http.Server{}
 	server.Handler = r

@@ -12,8 +12,11 @@ import (
 func RegisterBrandPath(r *mux.Router, db *gorm.DB) {
 	bm := models.NewBrandModel(db)
 	bc := brand.NewBrandController(bm)
-	r.HandleFunc("/brands/getall", bc.GetAllBrandController).Methods(http.MethodGet)
+	// ------------------------------------------------------------------
+	// CRUD Brand
+	// ------------------------------------------------------------------
 	r.HandleFunc("/brands/add", bc.PostBrandController).Methods(http.MethodPost)
+	r.HandleFunc("/brands/getall", bc.GetAllBrandController).Methods(http.MethodGet)
 	r.HandleFunc("/brands/edit/{id}", bc.EditBrandController).Methods(http.MethodPut)
 	r.HandleFunc("/brands/delete/{id}", bc.DeleteBrandController).Methods(http.MethodDelete)
 }

@@ -18,14 +18,6 @@ func NewBrandController(brandModel models.BrandModel) *BrandController {
 	return &BrandController{BrandModel: brandModel}
 }
 
-func (bc *BrandController) GetAllBrandController(w http.ResponseWriter, r *http.Request) {
-	brand, err := bc.BrandModel.GetAll()
-	if err != nil {
-		json.NewEncoder(w).Encode(common.NewBadRequestResponse())
-	}
-	json.NewEncoder(w).Encode(&brand)
-}
-
 func (bc *BrandController) PostBrandController(w http.ResponseWriter, r *http.Request) {
 	var brandRequest PostBrandRequest
 	err := json.NewDecoder(r.Body).Decode(&brandRequest)
@@ -56,6 +48,18 @@ func (bc *BrandController) PostBrandController(w http.ResponseWriter, r *http.Re
 		return
 	}
 	json.NewEncoder(w).Encode(common.NewSuccessOperationResponse())
+}
+
+func (bc *BrandController) GetAllBrandController(w http.ResponseWriter, r *http.Request) {
+	brands, err := bc.BrandModel.GetAll()
+	if err != nil {
+		json.NewEncoder(w).Encode(common.NewBadRequestResponse())
+	}
+	response := []GetBrandResponse{}
+	for _, brand := range brands {
+		response = append(response, GetBrandResponse{Name: brand.Name, Logo: brand.Logo, Banner: brand.Banner})
+	}
+	json.NewEncoder(w).Encode(&response)
 }
 
 func (bc *BrandController) EditBrandController(w http.ResponseWriter, r *http.Request) {

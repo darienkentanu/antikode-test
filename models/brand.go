@@ -20,18 +20,11 @@ func NewBrandModel(db *gorm.DB) *GormBrandModel {
 }
 
 type BrandModel interface {
-	GetAll() ([]Brand, error)
 	Insert(Brand) (Brand, error)
+	GetAll() ([]Brand, error)
 	Edit(id int, brand Brand) (Brand, error)
 	Delete(id int) (Brand, error)
-}
-
-func (bm *GormBrandModel) GetAll() ([]Brand, error) {
-	var brand []Brand
-	if err := bm.db.Find(&brand).Error; err != nil {
-		return nil, err
-	}
-	return brand, nil
+	GetBrandIdByName(name string) (uint, error)
 }
 
 func (bm *GormBrandModel) Insert(brand Brand) (Brand, error) {
@@ -41,6 +34,14 @@ func (bm *GormBrandModel) Insert(brand Brand) (Brand, error) {
 		return brand, err
 	}
 	tx.Commit()
+	return brand, nil
+}
+
+func (bm *GormBrandModel) GetAll() ([]Brand, error) {
+	var brand []Brand
+	if err := bm.db.Find(&brand).Error; err != nil {
+		return nil, err
+	}
 	return brand, nil
 }
 
@@ -73,4 +74,15 @@ func (bm *GormBrandModel) Delete(id int) (Brand, error) {
 	}
 	tx.Commit()
 	return brand, nil
+}
+
+func (bm *GormBrandModel) GetBrandIdByName(name string) (uint, error) {
+	var brand Brand
+	tx := bm.db.Begin()
+	if err := tx.Where("name=?", name).First(&brand).Error; err != nil {
+		tx.Rollback()
+		return 0, err
+	}
+	tx.Commit()
+	return brand.ID, nil
 }

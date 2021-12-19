@@ -58,7 +58,7 @@ func (bc *BrandController) GetAllBrandController(w http.ResponseWriter, r *http.
 	}
 	response := []GetBrandResponse{}
 	for _, brand := range brands {
-		response = append(response, GetBrandResponse{Name: brand.Name, Logo: brand.Logo, Banner: brand.Banner})
+		response = append(response, GetBrandResponse{ID: brand.ID, Name: brand.Name, Logo: brand.Logo, Banner: brand.Banner})
 	}
 	json.NewEncoder(w).Encode(&response)
 }

@@ -19,6 +19,7 @@ func main() {
 
 	router.RegisterBrandPath(r, db)
 	router.RegisterOutletPath(r, db)
+	router.RegisterProductPath(r, db)
 
 	server := &http.Server{}
 	server.Handler = r

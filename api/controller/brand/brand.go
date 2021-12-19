@@ -53,7 +53,8 @@ func (bc *BrandController) PostBrandController(w http.ResponseWriter, r *http.Re
 func (bc *BrandController) GetAllBrandController(w http.ResponseWriter, r *http.Request) {
 	brands, err := bc.BrandModel.GetAll()
 	if err != nil {
-		json.NewEncoder(w).Encode(common.NewBadRequestResponse())
+		json.NewEncoder(w).Encode(common.NewNotFoundResponse())
+		return
 	}
 	response := []GetBrandResponse{}
 	for _, brand := range brands {

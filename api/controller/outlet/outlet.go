@@ -8,6 +8,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"strconv"
 
 	"github.com/gorilla/mux"
 )
@@ -86,14 +87,84 @@ func (oc *OutletController) PostOutletController(w http.ResponseWriter, r *http.
 func (oc *OutletController) GetAllOutletController(w http.ResponseWriter, r *http.Request) {
 	outlets, err := oc.OutletModel.GetAll()
 	if err != nil {
-		json.NewEncoder(w).Encode(common.NewBadRequestResponse())
+		json.NewEncoder(w).Encode(common.NewNotFoundResponse())
+		return
 	}
 	response := []GetOutletResponse{}
 	for _, outlet := range outlets {
 		response = append(response, GetOutletResponse{
-			Name: outlet.Name, Picture: outlet.Picture, Address: outlet.Address, Longitute: outlet.Longitude,
+			ID: outlet.ID, Name: outlet.Name, Picture: outlet.Picture, Address: outlet.Address, Longitute: outlet.Longitude,
 			Latitute: outlet.Latitude, Distance: outlet.Distance,
 		})
 	}
 	json.NewEncoder(w).Encode(&response)
+}
+
+func (oc *OutletController) EditOutletController(w http.ResponseWriter, r *http.Request) {
+	idString := mux.Vars(r)["id"]
+	id, err := strconv.Atoi(idString)
+	if err != nil {
+		json.NewEncoder(w).Encode(common.NewBadRequestResponse())
+		return
+	}
+	outlet, err := oc.OutletModel.GetOutletById(id)
+	if err != nil {
+		json.NewEncoder(w).Encode(common.NewNotFoundResponse())
+		return
+	}
+	var outletRequest EditOutletRequest
+	err = json.NewDecoder(r.Body).Decode(&outletRequest)
+	if err != nil {
+		json.NewEncoder(w).Encode(common.NewBadRequestResponse())
+		return
+	}
+	if outletRequest.Name == "" {
+		json.NewEncoder(w).Encode(common.NewBadRequestResponse())
+		return
+	}
+	if outletRequest.Picture == "" {
+		json.NewEncoder(w).Encode(common.NewBadRequestResponse())
+		return
+	}
+	if outletRequest.Address == "" {
+		json.NewEncoder(w).Encode(common.NewBadRequestResponse())
+		return
+	}
+
+	longitude, latitude, distance := func() (string, string, float64) {
+		defer catch(w)
+		longitute, latitude := gmaps.Geocoding(outletRequest.Address)
+		distance, _ := gmaps.Distancematrix(outletRequest.Address, constants.DESTINATION)
+		return longitute, latitude, distance
+	}()
+
+	outlet = models.Outlet{
+		Name:      outletRequest.Name,
+		Picture:   outletRequest.Picture,
+		Address:   outletRequest.Address,
+		Longitude: longitude,
+		Latitude:  latitude,
+		Distance:  float32(distance),
+	}
+	_, err = oc.OutletModel.Edit(id, outlet)
+	if err != nil {
+		json.NewEncoder(w).Encode(common.NewInternalServerErrorResponse())
+		return
+	}
+	json.NewEncoder(w).Encode(common.NewSuccessOperationResponse())
+}
+
+func (oc *OutletController) DeleteOutletController(w http.ResponseWriter, r *http.Request) {
+	idString := mux.Vars(r)["id"]
+	id, err := strconv.Atoi(idString)
+	if err != nil {
+		json.NewEncoder(w).Encode(common.NewBadRequestResponse())
+		return
+	}
+	_, err = oc.OutletModel.Delete(id)
+	if err != nil {
+		json.NewEncoder(w).Encode(common.NewNotFoundResponse())
+		return
+	}
+	json.NewEncoder(w).Encode(common.NewSuccessOperationResponse())
 }

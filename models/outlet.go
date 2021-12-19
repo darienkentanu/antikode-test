@@ -24,8 +24,9 @@ func NewOutletModel(db *gorm.DB) *GormOutletModel {
 type OutletModel interface {
 	Insert(outlet Outlet) (Outlet, error)
 	GetAll() ([]Outlet, error)
-	// Edit(id int, outlet Outlet) (Outlet, error)
-	// Delete(id int) (Outlet, error)
+	Edit(id int, outlet Outlet) (Outlet, error)
+	Delete(id int) (Outlet, error)
+	GetOutletById(id int) (Outlet, error)
 }
 
 func (om *GormOutletModel) Insert(outlet Outlet) (Outlet, error) {
@@ -40,8 +41,55 @@ func (om *GormOutletModel) Insert(outlet Outlet) (Outlet, error) {
 
 func (om *GormOutletModel) GetAll() ([]Outlet, error) {
 	var outlets []Outlet
-	if err := om.db.Find(&outlets).Error; err != nil {
+	tx := om.db.Begin()
+	if err := tx.Find(&outlets).Error; err != nil {
+		tx.Rollback()
 		return nil, err
 	}
+	tx.Commit()
 	return outlets, nil
+}
+
+func (om *GormOutletModel) GetOutletById(id int) (Outlet, error) {
+	var outlet Outlet
+	tx := om.db.Begin()
+	if err := tx.First(&outlet, id).Error; err != nil {
+		tx.Rollback()
+		return Outlet{}, err
+	}
+	tx.Commit()
+	return outlet, nil
+}
+
+func (om *GormOutletModel) Edit(id int, outlet Outlet) (Outlet, error) {
+	var outletOutput Outlet
+	tx := om.db.Begin()
+	if err := tx.Model(&outletOutput).Where("id=?", id).Updates(Outlet{
+		Name:      outlet.Name,
+		Picture:   outlet.Picture,
+		Address:   outlet.Address,
+		Longitude: outlet.Longitude,
+		Latitude:  outlet.Latitude,
+		Distance:  outlet.Distance,
+	}).Error; err != nil {
+		tx.Rollback()
+		return Outlet{}, err
+	}
+	tx.Commit()
+	return outletOutput, nil
+}
+
+func (om *GormOutletModel) Delete(id int) (Outlet, error) {
+	var outlet Outlet
+	tx := om.db.Begin()
+	if err := tx.First(&outlet, id).Error; err != nil {
+		tx.Rollback()
+		return Outlet{}, err
+	}
+	if err := tx.Delete(&Outlet{}, id).Error; err != nil {
+		tx.Rollback()
+		return Outlet{}, err
+	}
+	tx.Commit()
+	return outlet, nil
 }

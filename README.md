@@ -54,6 +54,11 @@ $ go run app/main.go
 | GET | /outlets/getall | Get list of all outlets |
 | PUT | /outlets/edit/{id} | Update outlet by id |
 | DELETE | /outlets/delete/{id} | Delete outlet by id |
+|---|---|---|
+| POST | /products/add/{brandname} | Add list of product by brandname|
+| GET | /products/getall | Get list of all products |
+| PUT | /products/edit/{id} | Update product by id |
+| DELETE | /products/delete/{id} | Delete product by id |
 |:-----|:--------|:----------|
 
 
